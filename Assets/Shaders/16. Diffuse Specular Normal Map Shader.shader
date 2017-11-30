@@ -1,9 +1,9 @@
-﻿Shader "Custom/DiffuseSpecularBump2DCDShader" {
+﻿Shader "Custom/DiffuseSpecularNormalMapShader" {
 
 	Properties {
 		_Tint ("Tint", Color) = (1, 1, 1, 1)
 		_MainTex("Albedo", 2D) = "white" {}
-		[NoScaleOffset] _HeightMap ("Heights", 2D) = "gray" {}
+		[NoScaleOffset] _NormalMap ("Normal Map", 2D) = "gray" {}
 		_Shininness("Shininness",Range(0,1)) = 0.5
 		_SpecularTint ("Specular", Color) = (0.5, 0.5, 0.5)
 		_BumpScale ("Bump Scale", Float) = 1
@@ -20,6 +20,8 @@
 
 			CGPROGRAM
 
+			#pragma target 3.0
+
 			#pragma vertex MyVertexProgram
 			#pragma fragment MyFragmentProgram
 
@@ -30,8 +32,8 @@
 			float4 _Tint;
 			float4 _SpecularTint;
 			sampler2D _MainTex;
-			sampler2D _HeightMap;
-			float4 _HeightMap_TexelSize;
+			sampler2D _NormalMap;
+			float4 _NormalMap_TexelSize;
 			float4 _MainTex_ST;
 			float _Shininness;
 			float _BumpScale;
@@ -58,32 +60,17 @@
 				i.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				i.worldPosition = mul(unity_ObjectToWorld, v.position);
 
-				i.normal = UnityObjectToWorldNormal(v.normal);
-				i.normal = normalize(i.normal);
-				
 				return i;
 			}
 
 			void InitializeFragmentNormal(inout Interpolators i)
 			{
-				// We use the Central Difference (CD) method to calculate the tangents (sample half texel to left and half texel to right)
-				// This shifts the bumps slightly, so they are better aligned with the height field. Besides that, their shape doesn't change
+				// i.normal.xy = tex2D(_NormalMap, i.uv).wy * 2 - 1; 				// Convert the normals back to their original [−1,1] range, by computing 2*N-1
+				// i.normal.xy *= _BumpScale;
+				// i.normal.z = sqrt(1 - saturate(dot(i.normal.xy, i.normal.xy)));	// Taking into account that they are stored in DXT5nm format...
 
-				float2 du = float2(_HeightMap_TexelSize.x * 0.5, 0);
-				float u1 = tex2D(_HeightMap, i.uv-du);
-				float u2 = tex2D(_HeightMap, i.uv+du);
-				float3 tanu = float3(1,(u2-u1)*_BumpScale,0);
-
-				float2 dv = float2(0, _HeightMap_TexelSize.y * 0.5);
-				float v1 = tex2D(_HeightMap, i.uv-dv);
-				float v2 = tex2D(_HeightMap, i.uv+dv);
-				float3 tanv = float3(0,(v2-v1)*_BumpScale,1);
-
-				i.normal = cross(tanv,tanu);
-				// i.normal = float3((u1-u2)*_BumpScale, 1, (v1-v2)*_BumpScale); // Same as above. Dot product calculated manually with the algebraic formula
-				
-				i.normal = normalize(i.normal); // We renormalize, as linearly interpolating between different unit-length vectors does not result
-												// in another unit-length vector. It will be shorter. The error is usually very small though (not done in mobile)
+				i.normal = UnpackScaleNormal(tex2D(_NormalMap, i.uv), _BumpScale); 	// Same as all the above (be sure to set rendertarget >= 3 to scale bump properly)
+				i.normal = normalize(i.normal.xzy);									// Swap Y and Z and normalize to obtain decoded DXT5nm normals
 			}
 
 			float4 MyFragmentProgram (Interpolators i) : SV_TARGET

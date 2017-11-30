@@ -1,12 +1,16 @@
-﻿Shader "Custom/DiffuseSpecularBump2DCDShader" {
+﻿Shader "Custom/DiffuseSpecularNormalMapDetailShader" {
 
 	Properties {
 		_Tint ("Tint", Color) = (1, 1, 1, 1)
 		_MainTex("Albedo", 2D) = "white" {}
-		[NoScaleOffset] _HeightMap ("Heights", 2D) = "gray" {}
+		_DetailTex("Detail Texture", 2D) = "white" {}
+		[NoScaleOffset] _NormalMap ("Normal Map", 2D) = "gray" {}
+		[NoScaleOffset] _DetailNormalMap ("Detail Normals", 2D) = "bump" {}
 		_Shininness("Shininness",Range(0,1)) = 0.5
 		_SpecularTint ("Specular", Color) = (0.5, 0.5, 0.5)
 		_BumpScale ("Bump Scale", Float) = 1
+		_DetailBumpScale ("Detail Bump Scale", Float) = 1
+		
 	}
 
 	SubShader {
@@ -20,6 +24,8 @@
 
 			CGPROGRAM
 
+			#pragma target 3.0
+
 			#pragma vertex MyVertexProgram
 			#pragma fragment MyFragmentProgram
 
@@ -27,14 +33,12 @@
 			#include "UnityStandardBRDF.cginc"
 			#include "UnityStandardUtils.cginc"
 
-			float4 _Tint;
-			float4 _SpecularTint;
-			sampler2D _MainTex;
-			sampler2D _HeightMap;
-			float4 _HeightMap_TexelSize;
-			float4 _MainTex_ST;
-			float _Shininness;
-			float _BumpScale;
+			float4 _Tint, _SpecularTint;
+			sampler2D _MainTex, _DetailTex;
+			sampler2D _NormalMap, _DetailNormalMap;
+			float4 _NormalMap_TexelSize;
+			float4 _MainTex_ST, _DetailTex_ST;
+			float _Shininness, _BumpScale, _DetailBumpScale;
 
 			struct VertexData
 			{
@@ -46,7 +50,7 @@
 			struct Interpolators
 			{
 				float4 position : SV_POSITION;
-				float2 uv : TEXCOORD0;
+				float4 uv : TEXCOORD0;
 				float3 normal : TEXCOORD1;
 				float3 worldPosition : TEXCOORD2;
 			};
@@ -55,35 +59,24 @@
 			{
 				Interpolators i;
 				i.position = mul(UNITY_MATRIX_MVP, v.position);
-				i.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				i.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
+				i.uv.zw = TRANSFORM_TEX(v.uv, _DetailTex);
 				i.worldPosition = mul(unity_ObjectToWorld, v.position);
 
-				i.normal = UnityObjectToWorldNormal(v.normal);
-				i.normal = normalize(i.normal);
-				
 				return i;
 			}
 
 			void InitializeFragmentNormal(inout Interpolators i)
 			{
-				// We use the Central Difference (CD) method to calculate the tangents (sample half texel to left and half texel to right)
-				// This shifts the bumps slightly, so they are better aligned with the height field. Besides that, their shape doesn't change
+				float3 main_normal = UnpackScaleNormal(tex2D(_NormalMap, i.uv.xy), _BumpScale);
+				float3 detail_normal = UnpackScaleNormal(tex2D(_DetailNormalMap, i.uv.zw), _DetailBumpScale);
 
-				float2 du = float2(_HeightMap_TexelSize.x * 0.5, 0);
-				float u1 = tex2D(_HeightMap, i.uv-du);
-				float u2 = tex2D(_HeightMap, i.uv+du);
-				float3 tanu = float3(1,(u2-u1)*_BumpScale,0);
+				// i.normal = (main_normal + detail_normal) * 0.5; 	// What we're effectively trying to do here, is combine two height fields. Averaging those makes no
+																	// sense. It makes a lot more sense to add them. When adding two height functions, their slopes –thus
+																	// their derivatives – are added as well...
 
-				float2 dv = float2(0, _HeightMap_TexelSize.y * 0.5);
-				float v1 = tex2D(_HeightMap, i.uv-dv);
-				float v2 = tex2D(_HeightMap, i.uv+dv);
-				float3 tanv = float3(0,(v2-v1)*_BumpScale,1);
-
-				i.normal = cross(tanv,tanu);
-				// i.normal = float3((u1-u2)*_BumpScale, 1, (v1-v2)*_BumpScale); // Same as above. Dot product calculated manually with the algebraic formula
-				
-				i.normal = normalize(i.normal); // We renormalize, as linearly interpolating between different unit-length vectors does not result
-												// in another unit-length vector. It will be shorter. The error is usually very small though (not done in mobile)
+				i.normal = float3(main_normal.xy / main_normal.z + detail_normal.xy / detail_normal.z, 1); // We can find the partial derivatives by dividing X and Y by Z
+				i.normal = normalize(i.normal.xzy);
 			}
 
 			float4 MyFragmentProgram (Interpolators i) : SV_TARGET
@@ -96,13 +89,13 @@
 				float3 half_vec = normalize(view_dir + light_dir);
 
 				float3 lightColor = _LightColor0.rgb;
-				float3 albedo = tex2D(_MainTex, i.uv).rgb * _Tint.rgb;
+				float3 albedo = tex2D(_MainTex, i.uv.xy).rgb * _Tint.rgb;
+				albedo *= tex2D(_DetailTex, i.uv.zw)*unity_ColorSpaceDouble;
 				
 				float oneMinusReflectivity;
 				albedo = EnergyConservationBetweenDiffuseAndSpecular(albedo, _SpecularTint.rgb, oneMinusReflectivity);
 
 				float3 diffuse = albedo * lightColor * DotClamped(light_dir, i.normal);
-
 				float3 specular = _SpecularTint.rgb * lightColor * pow(DotClamped(half_vec, i.normal),_Shininness*100);
 
 				return float4(diffuse + specular,1);

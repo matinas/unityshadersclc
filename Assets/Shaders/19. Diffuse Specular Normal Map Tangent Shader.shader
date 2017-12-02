@@ -89,6 +89,10 @@
 
 			// In this shader we calculate the binormal in a per-fragment basis (check shader #20 to the per-vertex shader version)
 
+			// Note that we are only supporting Directional Lights to this point because it's based on 10 which only support those
+			// TODO: add support to more light types following Multiple Lights tutorial: http://catlikecoding.com/unity/tutorials/rendering/part-5/
+			// TODO: once we have this done add this new light types to the shaders with shadow support (20-22)
+
 			void InitializeFragmentNormal(inout Interpolators i)
 			{
 				float3 tangent_space_normal = UnpackScaleNormal(tex2D(_NormalMap, i.uv), _BumpScale);

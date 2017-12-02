@@ -59,6 +59,10 @@
 				return i;
 			}
 
+			// Note that we are only supporting Directional Lights to this point
+			// TODO: add support to more light types following Multiple Lights tutorial: http://catlikecoding.com/unity/tutorials/rendering/part-5/
+			// TODO: once we have this done add this new light types to the shaders with bumpmapping and shadow support
+
 			float4 MyFragmentProgram (Interpolators i) : SV_TARGET
 			{
 				i.normal = normalize(i.normal); // We renormalize, as linearly interpolating between different unit-length vectors does not result

@@ -7,7 +7,7 @@ A bunch of Unity shaders, materials, scripts and scenes based on Catlike Coding 
 
    <img src="https://user-images.githubusercontent.com/5633645/33520423-5bb4c3e0-d799-11e7-9b00-8f5d1222b9d5.png" alt="scene1to7_2" style="max-width:100%" width="256" heigth="256">
 
-* <span></span>**2. World Position Shader:** shades ab object based on each fragment's position (world space). . Based on "Shader Fundamentals" tutorial.
+* <span></span>**2. World Position Shader:** shades an object based on each fragment's position (world space). . Based on "Shader Fundamentals" tutorial.
 
 * <span></span>**3. UV Position Shader:** shades an object based on each fragment's uv position. . Based on "Shader Fundamentals" tutorial.
 

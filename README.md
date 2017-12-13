@@ -29,9 +29,9 @@ A bunch of Unity shaders, materials, scripts and scenes based on Catlike Coding 
 
 * <span></span>**9. Diffuse Shader:** shades an object based on the diffuse light it receives from an only directional light, including object's Albedo color. Based on "The First Light" tutorial.
 
-* <span></span>**10. Diffuse Specular Shader:** shades an object based on the diffuse and specular light it receives from an only directional light (Blin-Phong shading taking care of energy conservation), including object's Albedo color and Specular color. Based on "The First Light" tutorial.
+* <span></span>**10. Diffuse Specular Shader:** shades an object based on the diffuse and specular light it receives from an only directional light (Blinn-Phong shading taking care of energy conservation), including object's Albedo color and Specular color. Based on "The First Light" tutorial.
 
-* <span></span>**11. Specular Metallic Shader:** shades an object based on the diffuse and specular light it receives from an only directional light (Blin-Phong shading considering the Metallic workflow), including object's Albedo color and Specular color. Based on "The First Light" tutorial.
+* <span></span>**11. Specular Metallic Shader:** shades an object based on the diffuse and specular light it receives from an only directional light (Blinn-Phong shading considering the Metallic workflow), including object's Albedo color and Specular color. Based on "The First Light" tutorial.
 
    <img src="https://user-images.githubusercontent.com/5633645/33520296-e0e0e09c-d796-11e7-92ff-71bc0f495ad1.png" alt="scene8_12" style="max-width:100%" width="640" heigth="480">
 

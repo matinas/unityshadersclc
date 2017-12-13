@@ -7,9 +7,9 @@ A bunch of Unity shaders, materials, scripts and scenes based on Catlike Coding 
 
    <img src="https://user-images.githubusercontent.com/5633645/33520423-5bb4c3e0-d799-11e7-9b00-8f5d1222b9d5.png" alt="scene1to7_2" style="max-width:100%" width="256" heigth="256">
 
-* <span></span>**2. World Position Shader:** shades an object based on each fragment's position (world space). . Based on "Shader Fundamentals" tutorial.
+* <span></span>**2. World Position Shader:** shades an object based on each fragment's position (world space). Based on "Shader Fundamentals" tutorial.
 
-* <span></span>**3. UV Position Shader:** shades an object based on each fragment's uv position. . Based on "Shader Fundamentals" tutorial.
+* <span></span>**3. UV Position Shader:** shades an object based on each fragment's uv position. Based on "Shader Fundamentals" tutorial.
 
    <img src="https://user-images.githubusercontent.com/5633645/33520424-5bd5fab0-d799-11e7-9058-7af1f54a170f.png" alt="scene1to7_3" style="max-width:100%" width="256" heigth="256">
 
@@ -25,7 +25,7 @@ A bunch of Unity shaders, materials, scripts and scenes based on Catlike Coding 
 
    <img src="https://user-images.githubusercontent.com/5633645/33518743-44c2e90c-d779-11e7-8ef7-c0ab0cee8220.png" alt="scene17" style="max-width:10%" width="640" heigth="480">
 
-* <span></span>**8. Normal Position Shader:** shades ab object based on each fragment normal's position (in world space). Based on "The First Light" tutorial.
+* <span></span>**8. Normal Position Shader:** shades an object based on each fragment normal's position (in world space). Based on "The First Light" tutorial.
 
 * <span></span>**9. Diffuse Shader:** shades an object based on the diffuse light it receives from an only directional light, including object's Albedo color. Based on "The First Light" tutorial.
 
